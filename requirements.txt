@@ -5,3 +5,4 @@ gdown
 scikit-learn
 scikit-surprise==1.1.4
 numpy<2.0.0
+nltk

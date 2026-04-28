@@ -3,6 +3,12 @@ import pandas as pd
 import joblib
 import os
 import gdown
+import nltk
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt')
+    nltk.download('stopwords')
 
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Sistema de Inteligencia de Películas", layout="wide")
