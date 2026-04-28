@@ -7,80 +7,68 @@ import gdown
 # --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Movie Recommender", page_icon="🎬")
 
-# Revisamos el Drive
+# ID de tu matriz en Drive (Este no cambia)
 FILE_ID = '139RiukkDCJchMOEiwEm4EQMIu9Reqhpj'
 URL = f'https://drive.google.com/uc?id={FILE_ID}'
 
 DATA_DIR = 'data_processed'
 SIMILARITY_PATH = os.path.join(DATA_DIR, 'similarity_matrix.pkl')
-# Ruta al CSV que está en el GitHub
-MOVIES_CSV_PATH = 'data/movies_cleaned.csv' 
+
+# USANDO EL NOMBRE EXACTO QUE VEO EN TU FOTO
+MOVIES_CSV_PATH = 'data/movies.csv' 
 
 @st.cache_resource
 def load_data():
-    # Crear carpeta para la matriz si no existe
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
-    # 1. Descargar la matriz de similitud desde Drive si no existe
+    # 1. Descargar matriz si no existe
     if not os.path.exists(SIMILARITY_PATH):
-        with st.spinner('Descargando matriz de similitud (723MB). Esto solo ocurre una vez...'):
+        with st.spinner('Descargando matriz de similitud...'):
             gdown.download(URL, SIMILARITY_PATH, quiet=False)
     
-    # 2. Cargar los archivos
     try:
-        # Cargamos el CSV que está en la carpeta data/
+        # 2. Cargar tu archivo movies.csv
         movies = pd.read_csv(MOVIES_CSV_PATH)
         
-        # Cargamos la matriz descargada
+        # 3. Cargar la matriz
         with open(SIMILARITY_PATH, 'rb') as f:
             similarity = pickle.load(f)
             
         return movies, similarity
     except Exception as e:
-        st.error(f"Error al cargar los archivos: {e}")
+        st.error(f"Error al cargar archivos: {e}")
         return None, None
 
 def recommend(movie, movies_df, similarity_matrix):
     try:
-        # Encontrar el índice de la película
+        # En tu movies.csv la columna debe ser 'title' o el nombre exacto que tengas
         index = movies_df[movies_df['title'] == movie].index[0]
-        # Calcular distancias
         distances = sorted(list(enumerate(similarity_matrix[index])), reverse=True, key=lambda x: x[1])
-        
-        # Obtener los títulos de las 6 más parecidas
-        recommended_movie_names = []
-        for i in distances[1:7]:
-            recommended_movie_names.append(movies_df.iloc[i[0]].title)
-        return recommended_movie_names
-    except Exception as e:
-        return [f"Error en recomendación: {e}"]
+        return [movies_df.iloc[i[0]].title for i in distances[1:7]]
+    except:
+        return ["No se encontraron recomendaciones."]
 
-# --- INTERFAZ DE USUARIO ---
+# --- INTERFAZ ---
 def main():
     st.title('🎬 Movie Recommender System')
-    st.markdown("Selecciona una película para ver recomendaciones basadas en contenido.")
 
-    # Verificar que el CSV existe antes de cargar todo
+    # Verificación de seguridad
     if not os.path.exists(MOVIES_CSV_PATH):
-        st.error(f"No se encuentra el archivo {MOVIES_CSV_PATH} en la carpeta data/")
+        st.error(f"No encuentro el archivo '{MOVIES_CSV_PATH}'. Revisa que esté en GitHub.")
         return
 
     movies, similarity = load_data()
     
-    if movies is not None and similarity is not None:
-        # Crear el buscador con la columna 'title' del CSV
-        movie_list = movies['title'].values
-        selected_movie = st.selectbox("Escribe o selecciona una película:", movie_list)
+    if movies is not None:
+        # Asumo que la columna se llama 'title'. Si es 'Title', cámbialo abajo:
+        movie_list = movies['title'].values 
+        selected_movie = st.selectbox("Selecciona una película:", movie_list)
 
-        if st.button('Obtener Recomendaciones'):
-            recommendations = recommend(selected_movie, movies, similarity)
-            
-            st.subheader("Te recomendamos:")
-            cols = st.columns(3)
-            for idx, name in enumerate(recommendations):
-                with cols[idx % 3]:
-                    st.success(name)
+        if st.button('Recomendar'):
+            recs = recommend(selected_movie, movies, similarity)
+            for r in recs:
+                st.write(f"- {r}")
 
 if __name__ == '__main__':
     main()
