@@ -1,19 +1,5 @@
-# Entorno virtual
+data_processed/
+*.joblib
+*.pkl
 .venv/
-venv/
-env/
-
-# Datos y archivos pesados (Se quedan en Drive/Local)
-data/
-data_processed/similarity_matrix.pkl
-*.csv
-*.parquet
-
-# Cache de Python
 __pycache__/
-*.py[cod]
-*$py.class
-
-# IDEs
-.vscode/
-.idea/
