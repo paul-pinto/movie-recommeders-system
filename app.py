@@ -77,3 +77,6 @@ try:
 
 except Exception as e:
     st.error(f"Error: {e}")
+    
+st.divider()
+st.caption("Proyecto de Maestría en Data Science & IA - Jhonny Paul Pinto Phillips")
